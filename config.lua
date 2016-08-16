@@ -5,12 +5,13 @@ UrlDeny="on"
 Redirect="on"
 CookieMatch="on"
 postMatch="on" 
-whiteModule="on" 
+whiteModule="off" 
 black_fileExt={"php","jsp"}
-ipWhitelist={"127.0.0.1"}
-ipBlocklist={"1.0.0.1"}
+ipWhitelist={"127.0.0.1","192.168.0.118","120.26.55.211/32","121.42.0.0/24"}
+ipBlocklist={}
 CCDeny="off"
 CCrate="100/60"
+alarmMaillist={"jialin@gz-zc.cn"}
 html=[[
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -36,3 +37,4 @@ li{ list-style-type:none;}
 </div>
 </body></html>
 ]]
+
