@@ -5,9 +5,9 @@ UrlDeny="on"
 Redirect="on"
 CookieMatch="on"
 postMatch="on" 
-whiteModule="off" 
+whiteModule="on" 
 black_fileExt={"php","jsp"}
-ipWhitelist={"127.0.0.1","192.168.0.118","120.26.55.211/32","121.42.0.0/24"}
+ipWhitelist={"127.0.0.1","192.168.0.113","120.26.55.211/32","121.42.0.0/24"}
 ipBlocklist={}
 CCDeny="off"
 CCrate="100/60"
@@ -37,4 +37,3 @@ li{ list-style-type:none;}
 </div>
 </body></html>
 ]]
-

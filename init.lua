@@ -3,7 +3,7 @@ local iputils = require("resty.iputils")
 iputils.enable_lrucache()
 
 local match = string.match
-local ngxmatch=ngx.re.find
+local ngxmatch=ngx.re.match
 local unescape=ngx.unescape_uri
 local get_headers = ngx.req.get_headers
 local optionIsOn = function (options) return options == "on" and true or false end
@@ -51,16 +51,15 @@ function log(method,url,data,ruletag)
         else
             line = realIp.." ["..time.."] \""..method.." "..servername..url.."\" \""..data.."\" - \""..ruletag.."\"\n"
         end
-        
-        local 	filename = logpath..'/'..servername.."_"..ngx.today().."_sec.log"
-        
+        local filename = logpath..'/'..servername.."_"..ngx.today().."_sec.log"
+          
         local 	mailHtml = '<style>table{width:50%;}td{text-align: center;border:1px solid #6bb3f6;}</style>'
        			mailHtml = mailHtml.."<table  border='0' cellspacing='0' cellpadding='0'><tr><td colspan='4'>WEB防火墙邮件报警通知</td></tr><tr><td>请求IP</td><td>"..realIp.."</td><td>请求时间</td><td>"..time.."</td></tr>"
  				mailHtml = mailHtml.."<tr><td>请求method</td><td>"..method.."</td><td>请求url</td><td>"..servername..url.."</td></tr>"
  				mailHtml = mailHtml.."<tr><td>请求数据</td><td>"..data.."</td><td>触发规则</td><td>"..ruletag.."</td></tr></table>"
  		sendmail(mailHtml)
+ 		
         write(filename,line)
-      
     end
 end
 ------------------------------------规则读取函数-------------------------------------------------------------------
@@ -110,7 +109,7 @@ function fileExtCheck(ext)
     local items = Set(black_fileExt)
     ext=string.lower(ext)
     if ext then
-        for rule,_ in pairs(items) do
+        for rule in pairs(items) do
             if ngx.re.match(ext,rule,"isjo") then
 	        log('POST',ngx.var.request_uri,"-","file attack with ext "..ext)
             say_html()
@@ -236,48 +235,25 @@ function get_boundary()
     return match(header, ";%s*boundary=([^\",;]+)")
 end
 
--- IP地址白名单处理
 function whiteip()
     if next(ipWhitelist) ~= nil then
-       -- 之前的白名单处理方式
-       --[[ for _,ip in pairs(ipWhitelist) do
-            if getClientIp()==ip then
-                return true
-            else
-            
-            end
-        end ]]--
-        
-        -- 改进后支持IP段配置的白名单处理方式
         local whiteList = iputils.parse_cidrs(ipWhitelist)
     	if iputils.ip_in_cidrs(getClientIp(), whiteList) then
       		return true
     	else
             
         end
-    
     end
         return false
 end
 
--- IP地址黑名单处理
 function blockip()
      if next(ipBlocklist) ~= nil then
-     	 -- 之前的黑名单处理方式
-         --[[for _,ip in pairs(ipBlocklist) do
-             if getClientIp()==ip then
-                 ngx.exit(403)
-                 return true
-             end
-         end]]--
-        
-        -- 改进后支持IP段配置的黑名单处理方式
         local blockList = iputils.parse_cidrs(ipBlocklist)
     	if iputils.ip_in_cidrs(getClientIp(), blockList) then
       		 ngx.exit(403)
              return true
         end
-         
      end
          return false
 end
