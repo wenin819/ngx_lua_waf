@@ -18,11 +18,14 @@ attacklog = optionIsOn(attacklog)
 CCDeny = optionIsOn(CCDeny)
 Redirect=optionIsOn(Redirect)
 function getClientIp()
-        IP  = ngx.var.remote_addr 
-        if IP == nil then
-                IP  = "unknown"
-        end
-        return IP
+		IP = ngx.req.get_headers()["X-Real-IP"]
+		if IP == nil then
+			IP  = ngx.var.remote_addr
+		end
+		if IP == nil then
+			IP  = "unknown"
+		end
+		return IP
 end
 function write(logfile,msg)
     local fd = io.open(logfile,"ab")
@@ -47,9 +50,9 @@ function log(method,url,data,ruletag)
         local servername=ngx.var.server_name
         local time=ngx.localtime()
         if ua  then
-            line = realIp.." ["..time.."] \""..method.." "..servername..url.."\" \""..data.."\"  \""..ua.."\" \""..ruletag.."\"\n"
+            line = realIp.."#["..time.."]#"..method.."#"..servername..url.."#"..data.."#"..ua.."#"..ruletag.."\"\n"
         else
-            line = realIp.." ["..time.."] \""..method.." "..servername..url.."\" \""..data.."\" - \""..ruletag.."\"\n"
+            line = realIp.."#["..time.."]#"..method.."#"..servername..url.."#"..data.."#"..ruletag.."\"\n"
         end
         local filename = logpath..'/'..servername.."_"..ngx.today().."_sec.log"
           
