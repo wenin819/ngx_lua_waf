@@ -1,4 +1,7 @@
 require 'config'
+local iputils = require("resty.iputils")
+iputils.enable_lrucache()
+
 local match = string.match
 local ngxmatch=ngx.re.match
 local unescape=ngx.unescape_uri
@@ -15,11 +18,14 @@ attacklog = optionIsOn(attacklog)
 CCDeny = optionIsOn(CCDeny)
 Redirect=optionIsOn(Redirect)
 function getClientIp()
-        IP  = ngx.var.remote_addr 
-        if IP == nil then
-                IP  = "unknown"
-        end
-        return IP
+		IP = ngx.req.get_headers()["X-Real-IP"]
+		if IP == nil then
+			IP  = ngx.var.remote_addr
+		end
+		if IP == nil then
+			IP  = "unknown"
+		end
+		return IP
 end
 function write(logfile,msg)
     local fd = io.open(logfile,"ab")
@@ -28,6 +34,15 @@ function write(logfile,msg)
     fd:flush()
     fd:close()
 end
+function sendmail(line)
+     if next(alarmMaillist) ~= nil then
+     	 local cmd = 'echo "'..line..'" | mail -s "$(echo -e "web firewall alarm message\nContent-Type: text/html;charset=utf-8")" '
+         for _,mailer in pairs(alarmMaillist) do
+              os.execute(cmd .. mailer);
+         end
+     end
+         return false
+end
 function log(method,url,data,ruletag)
     if attacklog then
         local realIp = getClientIp()
@@ -35,11 +50,18 @@ function log(method,url,data,ruletag)
         local servername=ngx.var.server_name
         local time=ngx.localtime()
         if ua  then
-            line = realIp.." ["..time.."] \""..method.." "..servername..url.."\" \""..data.."\"  \""..ua.."\" \""..ruletag.."\"\n"
+            line = realIp.."#["..time.."]#"..method.."#"..servername..url.."#"..data.."#"..ua.."#"..ruletag.."\"\n"
         else
-            line = realIp.." ["..time.."] \""..method.." "..servername..url.."\" \""..data.."\" - \""..ruletag.."\"\n"
+            line = realIp.."#["..time.."]#"..method.."#"..servername..url.."#"..data.."#"..ruletag.."\"\n"
         end
         local filename = logpath..'/'..servername.."_"..ngx.today().."_sec.log"
+          
+        local 	mailHtml = '<style>table{width:50%;}td{text-align: center;border:1px solid #6bb3f6;}</style>'
+       			mailHtml = mailHtml.."<table  border='0' cellspacing='0' cellpadding='0'><tr><td colspan='4'>WEB防火墙邮件报警通知</td></tr><tr><td>请求IP</td><td>"..realIp.."</td><td>请求时间</td><td>"..time.."</td></tr>"
+ 				mailHtml = mailHtml.."<tr><td>请求method</td><td>"..method.."</td><td>请求url</td><td>"..servername..url.."</td></tr>"
+ 				mailHtml = mailHtml.."<tr><td>请求数据</td><td>"..data.."</td><td>触发规则</td><td>"..ruletag.."</td></tr></table>"
+ 		sendmail(mailHtml)
+ 		
         write(filename,line)
     end
 end
@@ -223,10 +245,11 @@ end
 
 function whiteip()
     if next(ipWhitelist) ~= nil then
-        for _,ip in pairs(ipWhitelist) do
-            if getClientIp()==ip then
-                return true
-            end
+        local whiteList = iputils.parse_cidrs(ipWhitelist)
+    	if iputils.ip_in_cidrs(getClientIp(), whiteList) then
+      		return true
+    	else
+            
         end
     end
         return false
@@ -234,12 +257,11 @@ end
 
 function blockip()
      if next(ipBlocklist) ~= nil then
-         for _,ip in pairs(ipBlocklist) do
-             if getClientIp()==ip then
-                 ngx.exit(403)
-                 return true
-             end
-         end
+        local blockList = iputils.parse_cidrs(ipBlocklist)
+    	if iputils.ip_in_cidrs(getClientIp(), blockList) then
+      		 ngx.exit(403)
+             return true
+        end
      end
          return false
 end
