@@ -1,17 +1,38 @@
+--规则存放目录
 RulePath = "/usr/local/nginx/lua/waf/wafconf/"
+--是否开启攻击信息记录，需要配置logdir
 attacklog = "on"
+--log存储目录，该目录需要用户自己新建，切需要nginx用户的可写权限
 logdir = "/usr/local/nginx/logs/hack/"
+--是否拦截url访问
 UrlDeny="on"
+--是否拦截后重定向
 Redirect="on"
+--是否拦截cookie攻击
 CookieMatch="on"
-postMatch="on" 
-whiteModule="on" 
+--是否拦截post攻击
+postMatch="on"
+--是否开启URL白名单
+whiteModule="on"
+--填写不允许上传文件后缀类型
 black_fileExt={"php","jsp"}
-ipWhitelist={"120.26.55.211/32","121.42.0.0/24"}
+--是否允许代理服务器
+allowProxy="off"
+--代理服务器白名单，对于用高防的情况使用，不配置代表允许所有代理
+allowProxyWhitelist=nil
+--ip白名单，多个ip用逗号分隔，支持网段配置，如：1.1.1.0/24
+ipWhitelist={}
+--ip黑名单，多个ip用逗号分隔
 ipBlocklist={}
-CCDeny="off"
+--是否开启拦截cc攻击(需要nginx.conf的http段增加lua_shared_dict limit 10m;)
+CCDeny="on"
+--设置cc攻击频率，单位为秒；即 <最多请求数>/<每多少秒>
+--100/60代表：1分钟同一个IP只能请求同一个地址100次
 CCrate="100/60"
-alarmMaillist={"jialin@gz-zc.cn"}
+--邮件通知列表
+alarmMaillist={}
+--警告内容,可在中括号内自定义
+--备注:不要乱动双引号，区分大小写
 html=[[
 <html xmlns="http://www.w3.org/1999/xhtml"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">

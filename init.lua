@@ -17,8 +17,34 @@ PathInfoFix = optionIsOn(PathInfoFix)
 attacklog = optionIsOn(attacklog)
 CCDeny = optionIsOn(CCDeny)
 Redirect=optionIsOn(Redirect)
+allowProxy=optionIsOn(allowProxy)
+
+local proxyWhitelist = nil;
+if next(ipWhitelist) ~= nil then
+    proxyWhitelist = iputils.parse_cidrs(allowProxyWhitelist)
+end
+
+local whiteList = nil;
+if next(ipWhitelist) ~= nil then
+    whiteList = iputils.parse_cidrs(ipWhitelist)
+end
+local blockList = nil;
+if next(ipBlocklist) ~= nil then
+    blockList = iputils.parse_cidrs(ipBlocklist)
+end
+
 function getClientIp()
-		IP = ngx.req.get_headers()["X-Real-IP"]
+		IP = nil;
+        if allowProxy then
+            if proxyWhitelist ~= nil then
+                IP  = ngx.var.remote_addr
+                if iputils.ip_in_cidrs(IP, proxyWhitelist) then
+                    IP = ngx.req.get_headers()["X-Real-IP"]
+                end
+            else
+                IP = ngx.req.get_headers()["X-Real-IP"]
+            end
+        end
 		if IP == nil then
 			IP  = ngx.var.remote_addr
 		end
@@ -244,8 +270,7 @@ function get_boundary()
 end
 
 function whiteip()
-    if next(ipWhitelist) ~= nil then
-        local whiteList = iputils.parse_cidrs(ipWhitelist)
+    if whiteList ~= nil then
     	if iputils.ip_in_cidrs(getClientIp(), whiteList) then
       		return true
     	else
@@ -256,8 +281,7 @@ function whiteip()
 end
 
 function blockip()
-     if next(ipBlocklist) ~= nil then
-        local blockList = iputils.parse_cidrs(ipBlocklist)
+     if blockList ~= nil then
     	if iputils.ip_in_cidrs(getClientIp(), blockList) then
       		 ngx.exit(403)
              return true
