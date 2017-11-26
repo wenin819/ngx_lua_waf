@@ -27,16 +27,13 @@ ngx_lua如果是0.9.2以上版本，建议正则过滤函数改为ngx.re.find，
 
 nginx安装路径假设为:/usr/local/nginx/conf/
 
-把ngx_lua_waf下载到conf目录下，解压命名为waf
+把ngx_lua_waf下载到/usr/local/nginx/lua/目录下，解压命名为waf
 
 在nginx.conf的http段添加
 
-		lua_package_path "/usr/local/nginx/lua/waf/?.lua";
-        lua_shared_dict limit 10m;
-        init_by_lua_file  /usr/local/nginx/lua/waf/init.lua; 
-    	access_by_lua_file /usr/local/nginx/lua/waf/waf.lua;
+        include /usr/local/nginx/lua/waf/include/auth_init.conf;
 
-配置config.lua里的waf规则目录(一般在waf/conf/目录下)
+配置config.lua里的waf规则目录(一般在waf/wafconf/目录下)
 
         RulePath = "/usr/local/nginx/lua/waf/wafconf/"
 
@@ -48,7 +45,21 @@ nginx安装路径假设为:/usr/local/nginx/conf/
 ### 配置文件详细说明：
 
 详见config.lua的注释
-        
+
+#### URL鉴权
+
+1. 配置人机验证页面：/auth；如果走默认方式，在luosimao.com中请申请对应的site key，在auth.html中进行替换。
+2. 在authurl中配置受保护资源入口，入口页面验证不通过，会跳转到/auth页面。配置行加前缀即可“->:”。
+3. 在authurl中配置普通受保护资源，直接配置，验证不通过，直接返回503。
+
+核心原理
+
+通过一个入口，人机验证页面，进行人机识别，识别成功后，通过设置两个cookie做为认证标识，一个为随机数，一个为签名。
+当cookie中没有认证标识，或认证标识签名不对，则说明是异常请求，跳到认证页面进行认证。
+通过对认证页面进行限流，以及对认证签名进行限流，进而达到防CC攻击的效果。
+
+备注：此功能核心原理参见博文：﻿[﻿通过nginx配置文件抵御攻击，防御CC攻击的经典思路！](http://www.92csz.com/30/1255.html)
+
 ### 检查规则是否生效
 
 部署完毕可以尝试如下命令：        

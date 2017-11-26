@@ -29,6 +29,12 @@ CCDeny="on"
 --设置cc攻击频率，单位为秒；即 <最多请求数>/<每多少秒>
 --100/60代表：1分钟同一个IP只能请求同一个地址100次
 CCrate="100/60"
+--是否开启URL鉴权，需要开启鉴权页面/auth
+AuthUrlDeny="on"
+--URL鉴权密钥
+AuthUrlSecretKey="im_not_a_bot"
+--URL鉴权限速，<最多新会话数>/<每多少秒>，否则进入人机识别
+AuthUrlRate="20/10"
 --邮件通知列表
 alarmMaillist={}
 --警告内容,可在中括号内自定义

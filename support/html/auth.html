@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>人机验证</title>
+    <style>
+        .account-wall {
+            margin-left: 30px;
+            margin-top: 50px;
+        }
+    </style>
+	<script>
+        ;var LC = (function() {
+            var hasInit = false;
+            function onRsp(init) {
+                console.info('rsp', arguments);
+                var wto = document.cookie.replace(/(?:(?:^|.*;\s*)wto\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+                var wtoa = init === true && document.cookie.replace(/(?:(?:^|.*;\s*)wtoa\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+                if(init === true && wtoa !== wto.substring(32)) {
+                    return;
+                }
+                if(wto && wto.length > 32) {
+                    document.cookie = 'wt=' + wto.substring(0, 32) + ';path=/';
+                    document.cookie = 'wr=' + wto.substring(32) + ';path=/';
+                    document.cookie = "wto=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    document.cookie = "wtoa=; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    location.href = location.href.replace(/^.*\\?url=(.*)$/, "$1");
+                } else {
+                    location.reload();
+                }
+            }
+            setTimeout(function() {
+                hasInit = true;
+            }, 200);
+            onRsp(true);
+            return {
+                onRsp: function() {
+                    if(hasInit) {
+                        onRsp();
+                    }
+                }
+            };
+        })();
+	</script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="account-wall">
+            <div class="item">
+                <div class="l-captcha" data-site-key="a6e525f80325741220977992c511fcc7" data-callback="LC.onRsp"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="//captcha.luosimao.com/static/dist/api.js"></script>
+</body>
+</html>
