@@ -25,13 +25,17 @@ ngx_lua如果是0.9.2以上版本，建议正则过滤函数改为ngx.re.find，
 
 ### 使用说明：
 
-nginx安装路径假设为:/usr/local/nginx/conf/
+nginx安装路径假设为:/usr/local/nginx/conf/，如果不是，可以考虑创建一个软链接，如配置文件目录为/etc/nginx，创建命令: ln -s /etc/nginx /usr/local/
 
 把ngx_lua_waf下载到/usr/local/nginx/lua/目录下，解压命名为waf
 
 在nginx.conf的http段添加
 
         include /usr/local/nginx/lua/waf/include/auth_init.conf;
+        
+在server段中添加
+    
+        include /usr/local/lua/waf/include/auth_url.conf
 
 配置config.lua里的waf规则目录(一般在waf/wafconf/目录下)
 
